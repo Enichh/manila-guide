@@ -273,22 +273,24 @@ export default class ChatWidget {
   height: 56px;
   border-radius: 50%;
   border: none;
-  background: var(--navy);
-  color: var(--white);
+  background: #111827;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-lg);
-  transition: background 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   z-index: 2;
 }
 
 .chat-toggle-btn:hover,
 .chat-toggle-btn.active {
-  background: var(--gold);
+  background: #b8975a;
+  color: #ffffff;
   transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .chat-toggle-btn:active {
@@ -333,13 +335,13 @@ export default class ChatWidget {
 /* --- Chat panel --- */
 .chat-panel {
   position: absolute;
-  bottom: 68px;
+  bottom: 76px;
   right: 0;
   width: 360px;
   height: 520px;
-  background: var(--white);
+  background: #ffffff;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -347,7 +349,7 @@ export default class ChatWidget {
   transform: translateY(16px) scale(0.95);
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
 
@@ -696,6 +698,15 @@ export default class ChatWidget {
     height: 34px;
     font-size: 16px;
   }
+}
+
+/* Dark mode overrides for chat widget */
+[data-theme="dark"] .chat-panel {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .chat-header {
+  background: linear-gradient(135deg, #0a0e17 0%, #1a2235 100%);
 }
 `;
   }

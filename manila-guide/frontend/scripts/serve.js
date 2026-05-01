@@ -7,7 +7,7 @@ require("dotenv").config({ path: "../../.env" }); // assume .env is in project r
 const PORT = 3000;
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/js/env-config.js") {
+  if (req.url === "/js/env.js") {
     // Generate config from env vars
     const envConfig = `window.__ENV = {
   SUPABASE_URL: '${process.env.SUPABASE_URL}',
@@ -34,7 +34,6 @@ window.CONFIG = {
     return res.end(envConfig + frontendConfig);
   }
 
-  // Serve static files
   const filePath = path.join(__dirname, "..", req.url);
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -54,6 +53,6 @@ window.CONFIG = {
 
 server.listen(PORT, () =>
   console.log(
-    `Dev server running at http://localhost:${PORT}/pages/index.html`,
+    `Dev server running at http://localhost:${PORT}/index.html`,
   ),
 );

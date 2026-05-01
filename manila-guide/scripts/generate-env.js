@@ -25,6 +25,6 @@ window.CONFIG = {
 
 const distDir = path.join(__dirname, "..", "frontend", "js");
 fs.writeFileSync(
-  path.join(distDir, "env-config.js"),
+  path.join(distDir, "env.js"),
   envConfig + frontendConfig,
 );

@@ -3,10 +3,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script src="js/env-config.js"></script>
+        <script src="js/env.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/supabase.js"></script>
-        <script src="js/auth-utils.js"></script>
 
         <title>Manila Guide — Sign In</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,15 +39,12 @@
                 </div>
             </a>
 
-            <!-- Sign In / Register tabs -->
+            <!-- Sign In / Register tabs (handled by auth-form.js via event delegation) -->
             <div class="auth-tabs">
-                <button
-                    class="auth-tab-btn active"
-                    onclick="switchTab('signin')"
-                >
+                <button class="auth-tab-btn active" data-tab="signin">
                     Sign in
                 </button>
-                <button class="auth-tab-btn" onclick="switchTab('register')">
+                <button class="auth-tab-btn" data-tab="register">
                     Register
                 </button>
             </div>
@@ -105,19 +100,12 @@
                             placeholder="••••••••"
                         />
                     </div>
-                    <button class="btn-primary" onclick="handleSignIn()">
+                    <button class="btn-primary btn-signin-submit">
                         Sign in
                     </button>
                     <p class="auth-footer">
                         Don't have an account?
-                        <a
-                            href="#"
-                            onclick="
-                                switchTab('register');
-                                return false;
-                            "
-                            >Register here</a
-                        >
+                        <a href="#" class="switch-to-register">Register here</a>
                     </p>
                 </div>
 
@@ -170,19 +158,12 @@
                             placeholder="Minimum 6 characters"
                         />
                     </div>
-                    <button class="btn-primary" onclick="handleRegister()">
+                    <button class="btn-primary btn-register-submit">
                         Create account
                     </button>
                     <p class="auth-footer">
                         Already have an account?
-                        <a
-                            href="#"
-                            onclick="
-                                switchTab('signin');
-                                return false;
-                            "
-                            >Sign in</a
-                        >
+                        <a href="#" class="switch-to-signin">Sign in</a>
                     </p>
                 </div>
             </div>
@@ -195,6 +176,6 @@
         </div>
         <!-- /page-wrap -->
 
-        <script src="../js/auth.js"></script>
+        <script type="module" src="js/pages/auth.js"></script>
     </body>
 </html>

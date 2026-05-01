@@ -1,148 +1,124 @@
 const { createClient } = require("@supabase/supabase-js");
 
+const { handleCors, wrapResponse } = require("../_shared/cors.js");
+const { CodeStore } = require("./code-store.js");
+const { UserRegistrar } = require("./user-registrar.js");
+const { ProfileManager } = require("./profile-manager.js");
+
+// --- Composition root: wire dependencies ---
+
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-exports.handler = async (event) => {
-  // CORS headers
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
+const codeStore = new CodeStore(supabaseAdmin);
+const userRegistrar = new UserRegistrar(supabaseAdmin);
+const profileManager = new ProfileManager(supabaseAdmin);
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
-  }
+// --- Handler ---
+
+exports.handler = async (event) => {
+  // CORS preflight
+  const corsResponse = handleCors(event);
+  if (corsResponse) return corsResponse;
 
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers, body: "Method not allowed" };
+    return wrapResponse(405, "Method not allowed");
   }
 
+  // Parse body
   let body;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return { statusCode: 400, headers, body: "Invalid JSON" };
+    return wrapResponse(400, "Invalid JSON");
   }
 
   const { email, code, password, name, action } = body;
 
   if (!email || !code || !action) {
-    return {
-      statusCode: 400,
-      headers,
-      body: "Email, code, and action are required.",
-    };
+    return wrapResponse(400, "Email, code, and action are required.");
   }
 
   // Retrieve verification record
-  const { data: records, error: lookupError } = await supabaseAdmin
-    .from("email_verifications")
-    .select("*")
-    .eq("email", email)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { data: record, error: lookupError } =
+    await codeStore.getLatestCode(email);
 
-  if (lookupError || records.length === 0) {
-    return { statusCode: 400, headers, body: "No verification code found." };
+  if (lookupError) {
+    return wrapResponse(500, lookupError);
   }
 
-  const record = records[0];
+  if (!record) {
+    return wrapResponse(400, "No verification code found.");
+  }
 
   // Check expiration
   if (new Date(record.expires_at) < new Date()) {
-    await supabaseAdmin
-      .from("email_verifications")
-      .delete()
-      .eq("id", record.id);
-    return { statusCode: 400, headers, body: "Verification code expired." };
+    await codeStore.deleteCode(record.id);
+    return wrapResponse(400, "Verification code expired.");
   }
 
   // Check attempts (max 5)
   if (record.attempts >= 5) {
-    await supabaseAdmin
-      .from("email_verifications")
-      .delete()
-      .eq("id", record.id);
-    return {
-      statusCode: 400,
-      headers,
-      body: "Too many attempts. Please request a new code.",
-    };
+    await codeStore.deleteCode(record.id);
+    return wrapResponse(400, "Too many attempts. Please request a new code.");
   }
 
   // Increment attempts
-  await supabaseAdmin
-    .from("email_verifications")
-    .update({ attempts: record.attempts + 1 })
-    .eq("id", record.id);
+  await codeStore.incrementAttempts(record.id, record.attempts);
 
+  // Validate code
   if (record.code !== code) {
-    return { statusCode: 400, headers, body: "Invalid verification code." };
+    return wrapResponse(400, "Invalid verification code.");
   }
 
-  // Code is correct – clean up record
-  await supabaseAdmin.from("email_verifications").delete().eq("id", record.id);
+  // Code is correct — clean up record
+  await codeStore.deleteCode(record.id);
 
-  // --- Action specific logic ---
+  // --- Action-specific logic ---
   if (action === "register") {
     if (!password || !name) {
-      return {
-        statusCode: 400,
-        headers,
-        body: "Name and password are required for registration.",
-      };
+      return wrapResponse(
+        400,
+        "Name and password are required for registration.",
+      );
     }
 
     // Create user in Supabase Auth (confirmed immediately)
-    const { data: user, error: createError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: name },
-      });
+    const {
+      user,
+      error: createError,
+      alreadyExists,
+    } = await userRegistrar.createUser(email, password, name);
 
-    if (createError) {
-      if (
-        createError.message &&
-        createError.message.includes("already been registered")
-      ) {
-        // Code was valid, user already exists — treat as success so frontend redirects to login
-        return {
-          statusCode: 200,
-          headers,
-          body: "User already registered. Please sign in.",
-        };
-      }
-      return { statusCode: 500, headers, body: createError.message };
+    if (alreadyExists) {
+      return wrapResponse(200, "User already registered. Please sign in.");
     }
 
-    // Insert profile (the trigger may have already created one; upsert to be safe)
-    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
-      {
-        id: user.user.id,
-        full_name: name,
-        role: "user",
-      },
-      { onConflict: "id" },
+    if (createError) {
+      return wrapResponse(500, createError);
+    }
+
+    // Upsert profile (the trigger may have already created one; upsert to be safe)
+    const { error: profileError } = await profileManager.upsertProfile(
+      user.id,
+      name,
+      "user",
     );
 
     if (profileError) {
-      return { statusCode: 500, headers, body: profileError.message };
+      return wrapResponse(500, profileError);
     }
 
-    return { statusCode: 200, headers, body: "User registered and verified." };
+    return wrapResponse(200, "User registered and verified.");
   }
 
   if (action === "login") {
     // User already authenticated via password on the frontend.
     // This function is called only to confirm the 2FA code.
-    return { statusCode: 200, headers, body: "Code verified. Proceed." };
+    return wrapResponse(200, "Code verified. Proceed.");
   }
 
-  return { statusCode: 400, headers, body: "Invalid action." };
+  return wrapResponse(400, "Invalid action.");
 };

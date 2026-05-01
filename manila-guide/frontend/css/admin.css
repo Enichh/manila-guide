@@ -532,3 +532,28 @@ tbody tr:hover {
         display: none;
     }
 }
+
+/* ══════════════════════════════════════════
+   DARK MODE (admin page)
+══════════════════════════════════════════ */
+
+[data-theme="dark"] body {
+    background: var(--white);
+}
+[data-theme="dark"] .admin-nav {
+    background: var(--navy);
+}
+[data-theme="dark"] .admin-content {
+    background: var(--cream);
+}
+[data-theme="dark"] .admin-table-card {
+    background: var(--white);
+    border-color: var(--border);
+}
+[data-theme="dark"] .astat-card {
+    background: var(--white);
+    border-color: var(--border);
+}
+[data-theme="dark"] .placeholder-panel {
+    background: var(--white);
+}

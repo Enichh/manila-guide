@@ -91,9 +91,7 @@ export default class ChatWidget {
     const toggleBtn = document.getElementById("chatToggle");
     if (toggleBtn) {
       toggleBtn.classList.add("active");
-      if (window.innerWidth <= 480) {
-        toggleBtn.style.display = "none";
-      }
+      toggleBtn.style.display = "none";
     }
 
     // Focus the input when opening

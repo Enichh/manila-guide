@@ -1,0 +1,450 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*
+*.env
+.envrc
+
+# API Keys and Configuration Files
+config.json
+secrets.json
+credentials.json
+api-keys.json
+keys.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+database.sqlite
+database.sqlite3
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Snowpack dependency directory
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows specific
+desktop.ini
+$RECYCLE.BIN/
+
+# MCP and AI related
+.windsurf-memory.json
+.codeium/
+mcp_config.json
+*.mcp-config
+
+# Agent skills and AI configurations
+.agents/
+.skills/
+ai-config.json
+agent-config.json
+
+# Build outputs and distributions
+build/
+dist/
+out/
+target/
+bin/
+obj/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# Repomix output
+repomix-output.xml
+repomix-output.*
+
+# Local development
+.local/
+localhost/
+local.*
+
+# Testing
+test-results/
+coverage/
+*.test.js
+*.spec.js
+
+# Documentation build
+docs/_build/
+site/_build/
+
+# Package manager lock files (keep these, but ignore for some cases)
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
+
+# Supabase specific
+supabase/.branches
+supabase/.temp
+supabase/config.toml.local
+
+# Google Cloud
+gcloud-config.json
+service-account-key.json
+
+# AWS
+.aws/
+aws-credentials.json
+
+# Azure
+azure.json
+*.azure
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kubernetes
+kubeconfig.yaml
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+ansible-vault
+*.vault
+
+# SSL certificates
+*.crt
+*.key
+*.pem
+ssl/
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# Sensitive configuration files
+config/
+secrets/
+private/
+conf/
+
+# User-specific files
+*.user
+*.local
+user-config.json
+
+# Temporary and cache files
+cache/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Lock files (some should be kept, but ignore sensitive ones)
+*.lock
+lock.json
+
+# Generated files
+generated/
+auto-generated/
+*.generated
+
+# Debug files
+debug/
+*.debug
+
+# Performance and profiling
+*.prof
+*.profile
+profiling/
+
+# Security and vulnerability scans
+security-scan.json
+vulnerability-report.json
+
+# Local environment overrides
+.env.override
+.env.local.override
+
+# IDE and editor specific
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build tools
+.grunt/
+.gulp/
+webpack.config.js.local
+rollup.config.js.local
+
+# Package managers
+.npm/
+.yarn/
+.pnpm/
+
+# Runtime and process managers
+.pm2/
+forever.log
+
+# Monitoring and analytics
+analytics.json
+monitoring.json
+
+# CI/CD local overrides
+.github/workflows/local.*
+.gitlab-ci.local.yml
+
+# Local development databases
+local.db
+dev.db
+test.db
+
+# API documentation with sensitive info
+api-docs-private/
+swagger-private.json
+
+# Configuration templates (filled versions)
+*.template.json
+*.config.template.js
+
+# Backup and migration scripts with sensitive data
+migrations/backup/
+scripts/backup/
+
+# Local SSL/TLS certificates
+certs/
+ssl/
+localhost.crt
+localhost.key
+
+# Development tools with sensitive configs
+postcss.config.js.local
+tailwind.config.js.local
+babel.config.js.local
+
+# Testing environment configs
+jest.config.js.local
+vitest.config.js.local
+cypress.config.js.local
+
+# Build artifacts with embedded secrets
+build-with-secrets/
+dist-with-secrets/
+
+# Local override files
+*.local.*
+local.*
+override.*
+
+# Sensitive data exports
+exports/
+dumps/
+backups/
+
+# Log files with sensitive information
+access.log
+error.log
+audit.log
+security.log
+
+# Session and authentication data
+sessions/
+auth/
+cookies/
+tokens/
+
+# Temporary upload directories
+uploads/
+temp-uploads/
+user-uploads/
+
+# Cache with potentially sensitive data
+cache/sensitive/
+temp/cache/
+
+# Development databases with real data
+dev-data/
+test-data/
+sample-data/
+
+# Configuration files with secrets
+config/secrets.json
+config/database.json
+config/auth.json
+config/api-keys.json
+
+# Environment-specific configs
+configs/production/
+configs/staging/
+configs/development/
+
+# Local development tools
+.local-tools/
+dev-tools/
+scripts/local/
+
+# Documentation with sensitive examples
+docs/private-examples/
+docs/sensitive-configs/
+
+# Generated documentation with secrets
+docs/generated/
+docs/build/
+
+# Performance monitoring with sensitive data
+performance/metrics/
+monitoring/data/
+
+# Analytics and tracking data
+analytics/private/
+tracking/data/
+
+# User data and PII
+user-data/
+personal-data/
+pii/
+
+# Legal and compliance documents
+legal/
+compliance/
+contracts/
+
+# Financial data
+financial/
+billing/
+payment-data/
+
+# Health and security data
+health-checks/
+security-scans/
+vulnerability-reports/
+
+# Local Netlify folder
+.netlify

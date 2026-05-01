@@ -1,0 +1,32 @@
+# Environment Configuration (contains API keys)
+frontend/js/env-config.js
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.md
+
+# IDE
+.vscode/
+.idea/
+
+# Netlify
+.netlify/
+
+# Build outputs
+dist/
+build/
+build-temp/
+
+# repomix
+repomix-output.xml
+
+.agents/**
+.windsurf/**

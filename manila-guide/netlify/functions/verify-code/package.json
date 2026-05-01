@@ -1,0 +1,9 @@
+{
+  "name": "verify-code",
+  "version": "1.0.0",
+  "description": "Netlify function for verifying email codes",
+  "main": "verify-code.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}

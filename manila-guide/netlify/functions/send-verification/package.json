@@ -1,0 +1,10 @@
+{
+  "name": "send-verification",
+  "version": "1.0.0",
+  "description": "Netlify function for sending email verification codes",
+  "main": "send-verification.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "nodemailer": "^6.0.0"
+  }
+}

@@ -127,7 +127,10 @@ exports.handler = async (event) => {
     } = await userRegistrar.createUser(email, password, name);
 
     if (alreadyExists) {
-      return wrapResponse(200, "User already registered. Please sign in.");
+      return wrapResponse(
+        200,
+        JSON.stringify({ message: "User already registered. Please sign in." }),
+      );
     }
 
     if (createError) {
@@ -145,13 +148,19 @@ exports.handler = async (event) => {
       return wrapResponse(500, profileError);
     }
 
-    return wrapResponse(200, "User registered and verified.");
+    return wrapResponse(
+      200,
+      JSON.stringify({ message: "User registered and verified." }),
+    );
   }
 
   if (action === "login") {
     // User already authenticated via password on the frontend.
     // This function is called only to confirm the 2FA code.
-    return wrapResponse(200, "Code verified. Proceed.");
+    return wrapResponse(
+      200,
+      JSON.stringify({ message: "Code verified. Proceed." }),
+    );
   }
 
   return wrapResponse(400, "Invalid action.");

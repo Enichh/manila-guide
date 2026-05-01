@@ -46,31 +46,65 @@ exports.handler = async (event) => {
     await codeStore.getLatestCode(email);
 
   if (lookupError) {
-    return wrapResponse(500, lookupError);
+    console.error("Database lookup error:", lookupError);
+    return wrapResponse(500, "Database error. Please try again.");
   }
 
   if (!record) {
-    return wrapResponse(400, "No verification code found.");
+    console.log("No verification code found for email:", email);
+    return wrapResponse(
+      400,
+      "No verification code found. Please request a new code.",
+    );
   }
+
+  // Debug logging
+  console.log(
+    "Retrieved code:",
+    record.code,
+    "Submitted code:",
+    code,
+    "Email:",
+    email,
+  );
 
   // Check expiration
   if (new Date(record.expires_at) < new Date()) {
+    console.log("Verification code expired for email:", email);
     await codeStore.deleteCode(record.id);
-    return wrapResponse(400, "Verification code expired.");
+    return wrapResponse(
+      400,
+      "Verification code expired. Please request a new code.",
+    );
   }
 
   // Validate code first
   if (record.code !== code) {
+    console.log(
+      "Code mismatch - Expected:",
+      record.code,
+      "Got:",
+      code,
+      "Email:",
+      email,
+      "Attempts:",
+      record.attempts,
+    );
+
     // Increment attempts only on failed validation
     await codeStore.incrementAttempts(record.id, record.attempts);
 
     // Check if this failure reaches the limit
     if (record.attempts + 1 >= 5) {
+      console.log("Too many attempts for email:", email);
       await codeStore.deleteCode(record.id);
       return wrapResponse(400, "Too many attempts. Please request a new code.");
     }
 
-    return wrapResponse(400, "Invalid verification code.");
+    return wrapResponse(
+      400,
+      "Invalid verification code. Please check your email and try again.",
+    );
   }
 
   // Code is correct — clean up record

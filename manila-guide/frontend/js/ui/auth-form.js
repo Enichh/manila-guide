@@ -436,6 +436,10 @@ export default class AuthForm {
     const activePanel = document.querySelector(".auth-panel.active");
     if (!activePanel) return;
 
+    // Guard: don't submit if already processing
+    const submitBtn = activePanel.querySelector(".btn-primary");
+    if (submitBtn && submitBtn.disabled) return;
+
     // Only trigger on non‑code‑input panels (code input uses auto‑verify)
     const hasNameField = activePanel.querySelector(
       'input[type="text"]:not([inputmode])',
@@ -488,6 +492,10 @@ export default class AuthForm {
     // Disable form controls while waiting for the verification code
     this._setPanelDisabled(panel, true);
 
+    // Change button text to show loading state
+    const submitBtn = panel.querySelector(".btn-primary");
+    if (submitBtn) submitBtn.textContent = "Sending code…";
+
     try {
       await this._authApi.requestVerificationCode(email, "register");
 
@@ -499,6 +507,7 @@ export default class AuthForm {
     } catch (err) {
       this.showError("register", err.message);
       this._setPanelDisabled(panel, false);
+      if (submitBtn) submitBtn.textContent = "Create account";
     }
   }
 
@@ -529,6 +538,10 @@ export default class AuthForm {
 
     this._setPanelDisabled(panel, true);
 
+    // Change button text to show loading state
+    const submitBtn = panel.querySelector(".btn-primary");
+    if (submitBtn) submitBtn.textContent = "Signing in…";
+
     try {
       // Step 1: password auth against Supabase
       const { session, error } = await this._authApi.signIn(email, password);
@@ -547,6 +560,7 @@ export default class AuthForm {
     } catch (err) {
       this.showError("signin", err.message);
       this._setPanelDisabled(panel, false);
+      if (submitBtn) submitBtn.textContent = "Sign in";
     }
   }
 

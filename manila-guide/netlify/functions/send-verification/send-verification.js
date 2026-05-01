@@ -88,16 +88,41 @@ exports.handler = async (event) => {
     return wrapResponse(500, dbError.message);
   }
 
-  // Send email
-  const html = generateEmailTemplate(code, action);
-  const { success, error: emailError } = await emailSender.send(
-    email,
-    "Your Verification Code – Manila Guide",
-    html,
-  );
+  // Verify the code was actually stored
+  const { data: verify } = await supabase
+    .from("email_verifications")
+    .select("code")
+    .eq("email", email)
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  if (!success) {
-    return wrapResponse(500, emailError);
+  if (!verify || verify.length === 0 || verify[0].code !== code) {
+    return wrapResponse(
+      500,
+      "Failed to store verification code. Please try again.",
+    );
+  }
+
+  // Send email (wrapped in separate try/catch)
+  try {
+    const html = generateEmailTemplate(code, action);
+    const { success, error: emailError } = await emailSender.send(
+      email,
+      "Your Verification Code – Manila Guide",
+      html,
+    );
+
+    if (!success) {
+      // Code is stored but email failed - user can try resending
+      console.error("Email send failed:", emailError);
+      return wrapResponse(500, emailError);
+    }
+  } catch (emailError) {
+    console.error("Email send exception:", emailError);
+    return wrapResponse(
+      500,
+      emailError.message || "Failed to send verification email.",
+    );
   }
 
   return wrapResponse(200, "Code sent");

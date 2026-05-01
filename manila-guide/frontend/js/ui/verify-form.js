@@ -121,15 +121,18 @@ export default class VerifyForm {
     const errorEl = this._getErrorElement();
     if (errorEl) {
       errorEl.textContent = message;
-      errorEl.classList.add('show');
+      errorEl.classList.add("show");
+      errorEl.style.color = ""; // Reset to default error color
     }
-
-    // Clear the code input so the user can retry
     const input = this._getCodeInput();
     if (input) {
-      input.value = '';
+      input.disabled = false;
+      input.value = "";
       input.focus();
     }
+    // Re-enable resend button
+    const resendBtn = this._getResendButton();
+    if (resendBtn) resendBtn.disabled = false;
   }
 
   /**
@@ -139,13 +142,13 @@ export default class VerifyForm {
     const btn = this._getResendButton();
     if (!btn) return;
 
-    btn.classList.add('success');
-    btn.textContent = 'Code sent!';
+    btn.classList.add("success");
+    btn.textContent = "Code sent!";
     btn.disabled = true;
 
     setTimeout(() => {
-      btn.classList.remove('success');
-      btn.textContent = 'Resend code';
+      btn.classList.remove("success");
+      btn.textContent = "Resend code";
       btn.disabled = false;
     }, 3000);
   }
@@ -158,7 +161,7 @@ export default class VerifyForm {
   showResendError(message) {
     const btn = this._getResendButton();
     if (btn) {
-      btn.textContent = 'Resend code';
+      btn.textContent = "Resend code";
       btn.disabled = false;
     }
 
@@ -173,7 +176,7 @@ export default class VerifyForm {
     this._removeListeners();
 
     if (this._container) {
-      this._container.innerHTML = '';
+      this._container.innerHTML = "";
       this._container = null;
     }
   }
@@ -189,9 +192,9 @@ export default class VerifyForm {
   _attachListeners() {
     if (!this._container) return;
 
-    this._container.addEventListener('input', this._onInput);
-    this._container.addEventListener('keydown', this._onKeyDown);
-    this._container.addEventListener('click', this._onClick);
+    this._container.addEventListener("input", this._onInput);
+    this._container.addEventListener("keydown", this._onKeyDown);
+    this._container.addEventListener("click", this._onClick);
   }
 
   /**
@@ -201,9 +204,9 @@ export default class VerifyForm {
   _removeListeners() {
     if (!this._container) return;
 
-    this._container.removeEventListener('input', this._onInput);
-    this._container.removeEventListener('keydown', this._onKeyDown);
-    this._container.removeEventListener('click', this._onClick);
+    this._container.removeEventListener("input", this._onInput);
+    this._container.removeEventListener("keydown", this._onKeyDown);
+    this._container.removeEventListener("click", this._onClick);
   }
 
   /**
@@ -215,18 +218,27 @@ export default class VerifyForm {
    */
   async _onInput(e) {
     const input = e.target;
-    if (!input.classList.contains('code-input')) return;
+    if (!input.classList.contains("code-input")) return;
 
     // Strip non‑digits
     const raw = input.value;
-    const clean = raw.replace(/\D/g, '');
+    const clean = raw.replace(/\D/g, "");
     if (clean !== raw) {
       input.value = clean;
     }
 
-    // Auto‑submit on 6 digits
+    // Auto‑submit on 6 digits with delay to prevent double-triggers
     if (clean.length === 6) {
-      await this._verifyCode(clean);
+      // Disable input to prevent re-submission
+      input.disabled = true;
+
+      // Show verifying state
+      this._showVerifyingState();
+
+      // Small delay so user sees the "verifying" state
+      setTimeout(async () => {
+        await this._verifyCode(clean);
+      }, 300);
     }
   }
 
@@ -240,12 +252,17 @@ export default class VerifyForm {
    */
   _onKeyDown(e) {
     const input = e.target;
-    if (!input.classList.contains('code-input')) return;
+    if (!input.classList.contains("code-input")) return;
 
     // Allow navigation / editing keys
     const allowedKeys = [
-      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight',
-      'Tab', 'Home', 'End',
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      "Home",
+      "End",
     ];
     if (allowedKeys.includes(e.key)) return;
 
@@ -268,14 +285,20 @@ export default class VerifyForm {
     const target = e.target;
 
     // Resend button
-    if (target.classList.contains('resend-btn') || target.closest('.resend-btn')) {
+    if (
+      target.classList.contains("resend-btn") ||
+      target.closest(".resend-btn")
+    ) {
       e.preventDefault();
       this._handleResend();
       return;
     }
 
     // Cancel link
-    if (target.classList.contains('cancel-verify-link') || target.closest('.cancel-verify-link')) {
+    if (
+      target.classList.contains("cancel-verify-link") ||
+      target.closest(".cancel-verify-link")
+    ) {
       e.preventDefault();
       this._handleCancel();
       return;
@@ -304,16 +327,72 @@ export default class VerifyForm {
         data.extraData,
       );
 
-      // Emit a generic verification-success event; the orchestrator
-      // (AuthForm) listens and decides what to do next.
-      this._eventBus.emit('verify:codeSuccess', {
-        action: data.action,
-        email: data.email,
-        result,
-      });
+      // Show success message before redirect
+      this._showSuccessState();
+
+      // Small delay so user sees the success message
+      setTimeout(() => {
+        this._eventBus.emit("verify:codeSuccess", {
+          action: data.action,
+          email: data.email,
+          result,
+        });
+      }, 800);
     } catch (err) {
       this.showError(err.message);
+      // Re-enable input on error so user can retry
+      const input = this._getCodeInput();
+      if (input) {
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+      }
+      this._hideMessage();
     }
+  }
+
+  /**
+   * Show "Verifying..." state in the UI.
+   * @private
+   */
+  _showVerifyingState() {
+    const errorEl = this._getErrorElement();
+    if (errorEl) {
+      errorEl.textContent = "Code being verified…";
+      errorEl.classList.add("show");
+      errorEl.style.color = "var(--text-secondary)";
+    }
+    // Also disable the resend button
+    const resendBtn = this._getResendButton();
+    if (resendBtn) resendBtn.disabled = true;
+  }
+
+  /**
+   * Show success state before redirect.
+   * @private
+   */
+  _showSuccessState() {
+    const errorEl = this._getErrorElement();
+    if (errorEl) {
+      errorEl.textContent = "Code verified! Redirecting…";
+      errorEl.classList.add("show");
+      errorEl.style.color = "var(--success)";
+    }
+  }
+
+  /**
+   * Hide the message display and re-enable the resend button.
+   * @private
+   */
+  _hideMessage() {
+    const errorEl = this._getErrorElement();
+    if (errorEl) {
+      errorEl.classList.remove("show");
+      errorEl.style.color = "";
+    }
+    // Re-enable resend button
+    const resendBtn = this._getResendButton();
+    if (resendBtn) resendBtn.disabled = false;
   }
 
   /**
@@ -327,7 +406,7 @@ export default class VerifyForm {
     const btn = this._getResendButton();
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'Sending...';
+      btn.textContent = "Sending...";
     }
 
     try {
@@ -344,7 +423,7 @@ export default class VerifyForm {
    * @private
    */
   _handleCancel() {
-    this._eventBus.emit('verify:cancel');
+    this._eventBus.emit("verify:cancel");
   }
 
   // -----------------------------------------------------------------------
@@ -353,18 +432,18 @@ export default class VerifyForm {
 
   /** @returns {HTMLInputElement|null} */
   _getCodeInput() {
-    return this._container?.querySelector('.code-input') || null;
+    return this._container?.querySelector(".code-input") || null;
   }
 
   /** @returns {HTMLElement|null} */
   _getErrorElement() {
-    const panelId = this._panelId || 'signin';
+    const panelId = this._panelId || "signin";
     return this._container?.querySelector(`#${panelId}-error`) || null;
   }
 
   /** @returns {HTMLButtonElement|null} */
   _getResendButton() {
-    return this._container?.querySelector('.resend-btn') || null;
+    return this._container?.querySelector(".resend-btn") || null;
   }
 
   /**
@@ -375,7 +454,7 @@ export default class VerifyForm {
    * @private
    */
   _escapeHtml(str) {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }

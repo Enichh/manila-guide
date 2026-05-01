@@ -91,6 +91,9 @@ export default class ChatWidget {
     const toggleBtn = document.getElementById("chatToggle");
     if (toggleBtn) {
       toggleBtn.classList.add("active");
+      if (window.innerWidth <= 480) {
+        toggleBtn.style.display = "none";
+      }
     }
 
     // Focus the input when opening
@@ -113,6 +116,7 @@ export default class ChatWidget {
     const toggleBtn = document.getElementById("chatToggle");
     if (toggleBtn) {
       toggleBtn.classList.remove("active");
+      toggleBtn.style.display = "";
     }
   }
 
@@ -344,12 +348,14 @@ export default class ChatWidget {
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
   border: 1px solid var(--border);
+  z-index: 1;
 }
 
 .chat-panel.open {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: all;
+  z-index: 3;
 }
 
 /* --- Slide-up animation (used on initial open) --- */
@@ -678,6 +684,8 @@ export default class ChatWidget {
     right: 16px;
     position: fixed;
   }
+
+  /* Toggle button is hidden by JS on mobile when panel opens */
 
   .chat-header {
     padding: 16px;

@@ -515,6 +515,183 @@ export default class ChatWidget {
   margin-bottom: 0;
 }
 
+/* --- Markdown-rendered content (AI assistant messages) --- */
+
+.chat-msg-bubble strong,
+.chat-msg-bubble b {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.chat-msg-bubble em,
+.chat-msg-bubble i {
+  font-style: italic;
+}
+
+/* Inline code */
+.chat-msg-bubble code {
+  background: var(--sand);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+  color: var(--navy-mid);
+  word-break: break-all;
+}
+
+/* Code blocks */
+.chat-msg-bubble pre {
+  background: var(--navy);
+  color: var(--cream);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.chat-msg-bubble pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  word-break: normal;
+  border-radius: 0;
+}
+
+/* Ordered lists */
+.chat-msg-bubble ol {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+
+.chat-msg-bubble ol li {
+  margin-bottom: 3px;
+}
+
+.chat-msg-bubble ol li:last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+.chat-msg-bubble a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.chat-msg-bubble a:hover {
+  color: var(--navy);
+}
+
+/* Headings (AI may occasionally use them) */
+.chat-msg-bubble h1,
+.chat-msg-bubble h2,
+.chat-msg-bubble h3,
+.chat-msg-bubble h4,
+.chat-msg-bubble h5,
+.chat-msg-bubble h6 {
+  margin: 8px 0 4px 0;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--navy);
+}
+
+.chat-msg-bubble h1 { font-size: 18px; }
+.chat-msg-bubble h2 { font-size: 16px; }
+.chat-msg-bubble h3 { font-size: 15px; }
+.chat-msg-bubble h4 { font-size: 14px; }
+.chat-msg-bubble h5 { font-size: 13.5px; }
+.chat-msg-bubble h6 { font-size: 13px; }
+
+/* Blockquote */
+.chat-msg-bubble blockquote {
+  margin: 6px 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.chat-msg-bubble blockquote p {
+  margin: 0;
+}
+
+/* Horizontal rule */
+.chat-msg-bubble hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+/* Tables (GitHub-Flavored Markdown) */
+.chat-msg-bubble table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 12.5px;
+  width: 100%;
+}
+
+.chat-msg-bubble th,
+.chat-msg-bubble td {
+  border: 1px solid var(--border);
+  padding: 5px 8px;
+  text-align: left;
+}
+
+.chat-msg-bubble th {
+  background: var(--sand);
+  font-weight: 600;
+}
+
+/* Dark mode overrides for markdown elements */
+[data-theme="dark"] .chat-msg-bubble strong,
+[data-theme="dark"] .chat-msg-bubble b {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .chat-msg-bubble code {
+  background: var(--navy-mid);
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .chat-msg-bubble pre {
+  background: #0a0e17;
+  color: var(--cream);
+}
+
+[data-theme="dark"] .chat-msg-bubble a {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .chat-msg-bubble a:hover {
+  color: var(--white);
+}
+
+[data-theme="dark"] .chat-msg-bubble h1,
+[data-theme="dark"] .chat-msg-bubble h2,
+[data-theme="dark"] .chat-msg-bubble h3,
+[data-theme="dark"] .chat-msg-bubble h4,
+[data-theme="dark"] .chat-msg-bubble h5,
+[data-theme="dark"] .chat-msg-bubble h6 {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .chat-msg-bubble blockquote {
+  border-left-color: var(--gold-light);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .chat-msg-bubble th {
+  background: var(--navy-mid);
+  border-color: var(--border-mid);
+}
+
+[data-theme="dark"] .chat-msg-bubble td {
+  border-color: var(--border-mid);
+}
+
 /* Assistant bubble */
 .chat-msg.assistant .chat-msg-bubble {
   background: var(--white);
@@ -900,13 +1077,14 @@ export default class ChatWidget {
     const messagesContainer = document.getElementById("chatMessages");
     if (!messagesContainer) return;
 
-    const escaped = this._escapeHtml(message);
+    // Convert markdown to safe HTML (unlike user messages which are escaped)
+    const html = this._markdownToHtml(message);
     const msgEl = document.createElement("div");
     msgEl.className = "chat-msg assistant";
     msgEl.innerHTML = `
       <div class="chat-msg-avatar chat-avatar-ai">AI</div>
       <div class="chat-msg-bubble">
-        <p>${escaped}</p>
+        ${html}
       </div>
     `;
     messagesContainer.appendChild(msgEl);
@@ -993,6 +1171,45 @@ export default class ChatWidget {
   // -----------------------------------------------------------------------
   // Private — utilities
   // -----------------------------------------------------------------------
+
+  /**
+   * Convert AI markdown response to safe HTML.
+   *
+   * Strips raw HTML tags first (defense-in-depth — the AI is instructed
+   * never to emit raw HTML), then converts markdown to HTML via the
+   * {@link https://github.com/markedjs/marked|marked} library.
+   *
+   * Falls back to escaped plain text when `marked` is unavailable.
+   *
+   * @param {string} str - Raw markdown from the AI assistant.
+   * @returns {string} Safe HTML string ready for innerHTML insertion.
+   * @private
+   */
+  _markdownToHtml(str) {
+    if (!str) return "";
+
+    // Defense-in-depth: strip any raw HTML tags the AI might have emitted
+    // despite being instructed not to.  This is a coarse safety net — the
+    // system prompt explicitly forbids raw HTML.
+    const cleaned = str.replace(/<[^>]*>/g, "");
+
+    // If the marked library is loaded (CDN), use it; otherwise fall back
+    // to safely escaped plain text.
+    if (typeof marked !== "undefined" && typeof marked.parse === "function") {
+      try {
+        const html = marked.parse(cleaned, {
+          breaks: true, // Convert \n to <br> for single newlines
+          gfm: true, // GitHub-Flavored Markdown (tables, strikethrough, etc.)
+        });
+        return html;
+      } catch (_err) {
+        // If parsing fails for any reason, fall through to escaped text.
+      }
+    }
+
+    // Fallback: safely escape and preserve newlines as <br>
+    return this._escapeHtml(str).replace(/\n/g, "<br>");
+  }
 
   /**
    * Escape user-supplied text to prevent XSS.

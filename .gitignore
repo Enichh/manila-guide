@@ -448,3 +448,7 @@ vulnerability-reports/
 
 # Local Netlify folder
 .netlify
+
+# Windsurf and AI development tools
+.windsurf/
+skills-lock.json

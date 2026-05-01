@@ -82,19 +82,10 @@ async function verifyCodeInput(code) {
 
     // ── Success ──
     if (currentAction === "register") {
-      // After registration, automatically sign in
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: signupData.email,
-        password: signupData.password,
-      });
-      if (error) throw error;
-
-      // Store user info in session (for auth-utils.js)
-      authSession.setUser({
-        email: signupData.email,
-        name: signupData.name,
-        role: "user",
-      });
+      // Registration successful — redirect to login page
+      // (avoiding signInWithPassword race condition after createUser)
+      window.location.href = "login.html?registered=true";
+      return;
     } else {
       // Login: user was already signed in via password
       // Fetch role from profiles table to determine if admin
@@ -228,36 +219,38 @@ function showCodeInput(panel) {
     panel === "register" ? signupData.email : loginSession.user.email;
 
   panelEl.innerHTML = `
-    <div class="auth-card-header">
-      <div class="card-logo-emblem">
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
-          <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z" fill="currentColor"/>
-        </svg>
+    <div class="verify-wrapper">
+      <div class="auth-card-header">
+        <div class="card-logo-emblem">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <span>Verify your email</span>
       </div>
-      <span>Verify your email</span>
+      <h2 class="auth-heading">Enter verification code</h2>
+      <p class="auth-sub">A 6‑digit code was sent to<br/><strong>${email}</strong></p>
+      <div class="error-msg" id="${panel}-error"></div>
+      <div class="form-group code-group">
+        <input
+          type="text"
+          class="form-input code-input"
+          id="${panel}-verification-code"
+          placeholder="000000"
+          maxlength="6"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          oninput="const clean=this.value.replace(/\\D/g,'');if(clean!==this.value)this.value=clean;if(clean.length===6)verifyCodeInput(clean)"
+          autofocus
+        />
+      </div>
+      <button class="btn-ghost full-w resend-btn" onclick="resendCode('${panel}')">
+        Resend code
+      </button>
+      <p class="auth-footer">
+        <a href="#" onclick="cancelVerification('${panel}'); return false;">← Back</a>
+      </p>
     </div>
-    <h2 class="auth-heading">Enter verification code</h2>
-    <p class="auth-sub">A 6‑digit code was sent to <strong>${email}</strong></p>
-    <div class="error-msg" id="${panel}-error"></div>
-    <div class="form-group">
-      <input
-        type="text"
-        class="form-input code-input"
-        id="${panel}-verification-code"
-        placeholder="000000"
-        maxlength="6"
-        inputmode="numeric"
-        autocomplete="one-time-code"
-        oninput="const clean=this.value.replace(/\\D/g,'');if(clean!==this.value)this.value=clean;if(clean.length===6)verifyCodeInput(clean)"
-        autofocus
-      />
-    </div>
-    <button class="btn-ghost full-w resend-btn" onclick="resendCode('${panel}')">
-      Resend code
-    </button>
-    <p class="auth-footer">
-      <a href="#" onclick="cancelVerification('${panel}'); return false;">← Back</a>
-    </p>
   `;
 }
 
@@ -265,17 +258,32 @@ function showCodeInput(panel) {
 async function resendCode(panel) {
   const email =
     panel === "register" ? signupData.email : loginSession.user.email;
+  const btn = document.querySelector(".resend-btn");
+
+  // Disable button during request
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+  }
+
   try {
     await requestVerificationCode(panel, email);
-    // Brief visual feedback
-    const btn = document.querySelector(".resend-btn");
+    // Success feedback
     if (btn) {
-      btn.textContent = "Code resent!";
+      btn.classList.add("success");
+      btn.textContent = "Code sent!";
       setTimeout(() => {
+        btn.classList.remove("success");
         btn.textContent = "Resend code";
-      }, 2000);
+        btn.disabled = false;
+      }, 3000);
     }
   } catch (err) {
+    // Error feedback
+    if (btn) {
+      btn.textContent = "Resend code";
+      btn.disabled = false;
+    }
     showError(panel, err.message);
   }
 }
@@ -339,4 +347,14 @@ document.addEventListener("keydown", (e) => {
 // ── Init on login page ──────────────────────────────────
 if (window.location.pathname.includes("login.html")) {
   checkAuthStatus();
+
+  // Show success message if redirected from registration
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("registered") === "true") {
+    switchTab("signin");
+    const successEl = document.getElementById("signin-success");
+    if (successEl) successEl.classList.add("show");
+    // Clear the query parameter from the URL without reloading
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 }

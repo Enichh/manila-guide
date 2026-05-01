@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 // Reads auth state from `SessionStore` and updates the `.nav-actions` section
 // of the header accordingly (authenticated vs. unauthenticated states).
+// Also keeps the mobile menu auth link in sync.
 //
 // Exports (default): NavBar
 // ---------------------------------------------------------------------------
@@ -54,16 +55,31 @@ export default class NavBar {
   }
 
   /**
-   * Read the current session state and re‑render the `.nav-actions` element.
+   * Read the current session state and re‑render the `.nav-actions` element
+   * AND update the mobile menu auth link.
    */
   update() {
-    const navActions = document.querySelector('.nav-actions');
-    if (!navActions) return;
+    const navActions = document.querySelector(".nav-actions");
+    if (navActions) {
+      if (this._sessionStore.isAuthenticated()) {
+        navActions.innerHTML = this._renderAuthenticated();
+      } else {
+        navActions.innerHTML = this._renderUnauthenticated();
+      }
+    }
 
-    if (this._sessionStore.isAuthenticated()) {
-      navActions.innerHTML = this._renderAuthenticated();
-    } else {
-      navActions.innerHTML = this._renderUnauthenticated();
+    // Also update the mobile menu auth link so it stays in sync
+    const mobileAuthLink = document.querySelector(".mob-link-auth");
+    if (mobileAuthLink) {
+      if (this._sessionStore.isAuthenticated()) {
+        mobileAuthLink.textContent = "Sign out";
+        mobileAuthLink.href = "#";
+        mobileAuthLink.classList.add("mob-signout");
+      } else {
+        mobileAuthLink.textContent = "Sign in";
+        mobileAuthLink.href = "login.html";
+        mobileAuthLink.classList.remove("mob-signout");
+      }
     }
   }
 
@@ -91,7 +107,7 @@ export default class NavBar {
     const initial = userName.charAt(0).toUpperCase();
     const isAdmin = this._sessionStore.isAdmin();
     const userEmail = this._escapeHtml(
-      this._sessionStore.getUser()?.email || '',
+      this._sessionStore.getUser()?.email || "",
     );
 
     return `
@@ -110,16 +126,16 @@ export default class NavBar {
               <div>
                 <div class="dropdown-name">${userName}</div>
                 <div class="dropdown-email">${userEmail}</div>
-                ${isAdmin ? '<div class="dropdown-role">Administrator</div>' : ''}
+                ${isAdmin ? '<div class="dropdown-role">Administrator</div>' : ""}
               </div>
             </div>
           </div>
           <div class="dropdown-divider"></div>
-          <a href="${isAdmin ? 'admin.html' : '#itinerary'}" class="dropdown-item">
+          <a href="${isAdmin ? "admin.html" : "#itinerary"}" class="dropdown-item">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 2C8.55228 2 9 2.44772 9 3V7H13C13.5523 7 14 7.44772 14 8C14 8.55228 13.5523 9 13 9H9V13C9 13.5523 8.55228 14 8 14C7.44772 14 7 13.5523 7 13V9H3C2.44772 9 2 8.55228 2 8C2 7.44772 2.44772 7 3 7H7V3C7 2.44772 7.44772 2 8 2Z" fill="currentColor"/>
             </svg>
-            ${isAdmin ? 'Admin Dashboard' : 'My Trips'}
+            ${isAdmin ? "Admin Dashboard" : "My Trips"}
           </a>
           <a href="#reviews" class="dropdown-item">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -164,7 +180,7 @@ export default class NavBar {
    * @private
    */
   _escapeHtml(str) {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }

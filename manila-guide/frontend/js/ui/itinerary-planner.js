@@ -100,6 +100,9 @@ export default class ItineraryPlanner {
     // --- Populated state ---
     main.innerHTML = this._buildItineraryHTML(itineraries);
     this._updateSidebar(itineraries, savedSpots || []);
+
+    // Wire the "+ Add stop" button after DOM update
+    this._wireAddStopButton(main);
   }
 
   /**
@@ -618,6 +621,25 @@ export default class ItineraryPlanner {
    */
   _getItinMain() {
     return document.querySelector(".itin-main");
+  }
+
+
+  /**
+   * Wire the "+ Add stop" button to scroll to the explore section.
+   *
+   * @param {HTMLElement} main — The .itin-main container.
+   * @private
+   */
+  _wireAddStopButton(main) {
+    const btn = main.querySelector(".btn-ghost.sm");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const explore = document.getElementById("explore");
+        if (explore) {
+          explore.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
   }
 
   /**

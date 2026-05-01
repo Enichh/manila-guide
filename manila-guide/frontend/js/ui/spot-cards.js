@@ -38,6 +38,10 @@ export default class SpotCards {
     // Bound handler references stored for cleanup
     /** @private @type {Function|null} */
     this._favClickHandler = null;
+    /** @private @type {Function|null} */
+    this._cardCTAClickHandler = null;
+    /** @private @type {Function|null} */
+    this._tripBtnClickHandler = null;
   }
 
   // -----------------------------------------------------------------------
@@ -93,6 +97,8 @@ export default class SpotCards {
 
     // Re-attach interactivity
     this._attachFavouriteListeners();
+    this._attachCardCTAListeners();
+    this._attachTripButtonListeners();
     this._setupScrollAnimations();
 
     // Notify other components that spots have been rendered
@@ -175,12 +181,28 @@ export default class SpotCards {
     const grid = this._getGrid();
     if (!grid) return;
 
-    const buttons = grid.querySelectorAll(".fav-btn");
+    const favButtons = grid.querySelectorAll(".fav-btn");
     if (this._favClickHandler) {
-      buttons.forEach((btn) =>
+      favButtons.forEach((btn) =>
         btn.removeEventListener("click", this._favClickHandler),
       );
       this._favClickHandler = null;
+    }
+
+    const ctaLinks = grid.querySelectorAll(".card-cta");
+    if (this._cardCTAClickHandler) {
+      ctaLinks.forEach((link) =>
+        link.removeEventListener("click", this._cardCTAClickHandler),
+      );
+      this._cardCTAClickHandler = null;
+    }
+
+    const tripBtns = grid.querySelectorAll(".card-trip-btn");
+    if (this._tripBtnClickHandler) {
+      tripBtns.forEach((btn) =>
+        btn.removeEventListener("click", this._tripBtnClickHandler),
+      );
+      this._tripBtnClickHandler = null;
     }
   }
 
@@ -237,7 +259,10 @@ export default class SpotCards {
           </div>
           <div class="spot-fee ${isFree ? "free" : ""}">${this._escapeHtml(this._simplifyFee(spot.entrance_fee))}</div>
         </div>
-        <a href="#detail" class="card-cta" data-spot-id="${spot.id}">View details \u2192</a>
+        <div class="spot-card-actions">
+          <a href="#detail" class="card-cta" data-spot-id="${spot.id}">View details \u2192</a>
+          <button class="card-trip-btn" data-spot-id="${spot.id}" data-spot-name="${this._escapeHtml(spot.name)}" title="Add to itinerary">+ Trip</button>
+        </div>
       </div>
     </article>
     `;
@@ -276,16 +301,18 @@ export default class SpotCards {
 
     // Try to extract the first price mentioned
     const cleaned = feeStr
-      .replace(/PHP\s*/gi, "₱")
-      .replace(/Php\s*/gi, "₱")
-      .replace(/php\s*/gi, "₱");
+      .replace(/PHP\s*/gi, "\u20B1")
+      .replace(/Php\s*/gi, "\u20B1")
+      .replace(/php\s*/gi, "\u20B1");
 
-    // If it has a range like "₱75 – ₱150", return that
-    const rangeMatch = cleaned.match(/₱[\d,.]+\s*(–|—|-|to)\s*₱[\d,.]+/i);
+    // If it has a range like "\u20B175 – \u20B1150", return that
+    const rangeMatch = cleaned.match(
+      /\u20B1[\d,.]+\s*(\u2013|\u2014|-|to)\s*\u20B1[\d,.]+/i,
+    );
     if (rangeMatch) return rangeMatch[0];
 
-    // If it has a single price "₱75" or "₱75 (regular)", extract just the price
-    const singleMatch = cleaned.match(/₱[\d,.]+/);
+    // If it has a single price "\u20B175" or "\u20B175 (regular)", extract just the price
+    const singleMatch = cleaned.match(/\u20B1[\d,.]+/);
     if (singleMatch) return singleMatch[0];
 
     // If it's a short string (under 30 chars), show as-is
@@ -433,17 +460,12 @@ export default class SpotCards {
   /**
    * Attach click listeners to every `.fav-btn` inside the grid.
    *
-   * Handles the `saved` class toggle and, if authenticated, could later call
-   * into {@link SpotApi.toggleSavedSpot}.  The handler reference is stored
-   * so {@link cleanup} can remove it.
-   *
    * @private
    */
   _attachFavouriteListeners() {
     const grid = this._getGrid();
     if (!grid) return;
 
-    // Remove old handler if it exists (defensive)
     if (this._favClickHandler) {
       const oldButtons = grid.querySelectorAll(".fav-btn");
       oldButtons.forEach((btn) =>
@@ -459,6 +481,80 @@ export default class SpotCards {
     const buttons = grid.querySelectorAll(".fav-btn");
     buttons.forEach((btn) =>
       btn.addEventListener("click", this._favClickHandler),
+    );
+  }
+
+  /**
+   * Attach click listeners to every `.card-cta` "View details" link.
+   * Prevents default anchor behaviour and calls {@link showDetail} with
+   * the spot ID from the `data-spot-id` attribute.
+   *
+   * @private
+   */
+  _attachCardCTAListeners() {
+    const grid = this._getGrid();
+    if (!grid) return;
+
+    if (this._cardCTAClickHandler) {
+      const oldLinks = grid.querySelectorAll(".card-cta");
+      oldLinks.forEach((link) =>
+        link.removeEventListener("click", this._cardCTAClickHandler),
+      );
+    }
+
+    this._cardCTAClickHandler = (e) => {
+      e.preventDefault();
+      const spotId = e.currentTarget.dataset.spotId;
+      if (spotId) {
+        this.showDetail(spotId);
+      }
+    };
+
+    const links = grid.querySelectorAll(".card-cta");
+    links.forEach((link) =>
+      link.addEventListener("click", this._cardCTAClickHandler),
+    );
+  }
+
+  /**
+   * Attach click listeners to every `.card-trip-btn` "+ Trip" button.
+   *
+   * When clicked, emits `itinerary:quickAdd` with the spot ID and name
+   * so the page orchestrator can either open a date/time picker or
+   * scroll to the detail sidebar.
+   *
+   * @private
+   */
+  _attachTripButtonListeners() {
+    const grid = this._getGrid();
+    if (!grid) return;
+
+    if (this._tripBtnClickHandler) {
+      const oldBtns = grid.querySelectorAll(".card-trip-btn");
+      oldBtns.forEach((btn) =>
+        btn.removeEventListener("click", this._tripBtnClickHandler),
+      );
+    }
+
+    this._tripBtnClickHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      const spotId = btn.dataset.spotId;
+      const spotName = btn.dataset.spotName;
+
+      if (spotId) {
+        // Emit event so the page orchestrator can handle the rest
+        // (open detail sidebar, show date/time form, etc.)
+        this._eventBus.emit("itinerary:quickAdd", { spotId, spotName });
+        // Also open the detail for this spot
+        this.showDetail(spotId);
+      }
+    };
+
+    const buttons = grid.querySelectorAll(".card-trip-btn");
+    buttons.forEach((btn) =>
+      btn.addEventListener("click", this._tripBtnClickHandler),
     );
   }
 

@@ -2,7 +2,8 @@
 // user-menu.js — User Dropdown Menu Component
 // ---------------------------------------------------------------------------
 // Manages the authenticated user dropdown: toggle, close‑on‑outside‑click,
-// and sign‑out.  Extracted from the legacy `auth-utils.js` God‑module.
+// and sign‑out.  Also handles the mobile menu sign‑out link.
+// Extracted from the legacy `auth-utils.js` God‑module.
 //
 // Exports (default): UserMenu
 // ---------------------------------------------------------------------------
@@ -11,7 +12,8 @@
  * Encapsulates all behaviour of the `.user-menu` dropdown.
  *
  * **Single Responsibility:** Handle open / close of the dropdown and the
- * sign‑out action.  Rendering of the menu HTML itself is owned by {@link NavBar}.
+ * sign‑out action (both desktop dropdown and mobile menu).  Rendering of
+ * the menu HTML itself is owned by {@link NavBar}.
  *
  * All external dependencies arrive via the constructor (DI).
  */
@@ -99,10 +101,11 @@ export default class UserMenu {
   /**
    * Global click handler using event delegation.
    *
-   * Handles three scenarios:
+   * Handles four scenarios:
    *   1. Click on the user‑menu toggle button → toggle dropdown.
-   *   2. Click on the sign‑out button → handle sign‑out.
-   *   3. Click outside the `.user-menu` container → close dropdown.
+   *   2. Click on the sign‑out button (desktop) → handle sign‑out.
+   *   3. Click on the mobile sign‑out link → handle sign‑out.
+   *   4. Click outside the `.user-menu` container → close dropdown.
    *
    * @param {MouseEvent} e
    * @private
@@ -118,7 +121,7 @@ export default class UserMenu {
       return;
     }
 
-    // Scenario 2 — sign‑out button
+    // Scenario 2 — desktop sign‑out button
     const logoutBtn = e.target.closest(".logout-btn");
     if (logoutBtn) {
       e.preventDefault();
@@ -126,7 +129,18 @@ export default class UserMenu {
       return;
     }
 
-    // Scenario 3 — click outside the menu closes it
+    // Scenario 3 — mobile menu sign‑out link
+    const mobSignout = e.target.closest(".mob-signout");
+    if (mobSignout) {
+      e.preventDefault();
+      // Close the mobile menu first
+      const mobileMenu = document.getElementById("mobileMenu");
+      if (mobileMenu) mobileMenu.classList.remove("open");
+      this.handleSignOut();
+      return;
+    }
+
+    // Scenario 4 — click outside the menu closes it
     if (userMenu && !userMenu.contains(e.target)) {
       this.closeMenu();
     }

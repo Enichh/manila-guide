@@ -113,6 +113,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     },
   );
 
+  // 7b. itinerary:quickAdd → triggered by "+ Trip" card button
+  eventBus.on("itinerary:quickAdd", ({ spotId, spotName }) => {
+    const user = sessionStore.getUser();
+    if (!user) {
+      router.navigate("login.html");
+      return;
+    }
+    // Detail view is already open — ensure sidebar is visible
+    const sidebar = document.querySelector(".detail-sidebar");
+    if (sidebar) {
+      sidebar.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
+
+
   // ── 8. Public‑page interactivity ──────────────────────────────────────
 
   // 8a. Search bar

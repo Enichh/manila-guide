@@ -1227,6 +1227,51 @@ input {
     border-color: var(--navy);
 }
 
+/* Spot card action row — View details + Quick add */
+.spot-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.spot-card-actions .card-cta {
+    flex: 1;
+    text-decoration: none;
+}
+
+.card-trip-btn {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: inherit;
+    background: var(--gold);
+    color: var(--white);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.card-trip-btn:hover {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--gold-light);
+}
+
+[data-theme="dark"] .card-trip-btn {
+    background: var(--gold);
+    color: var(--navy);
+    border-color: var(--gold);
+}
+
+[data-theme="dark"] .card-trip-btn:hover {
+    background: var(--gold-light);
+    color: var(--navy);
+    border-color: var(--gold-light);
+}
+
 /* ══════════════════════════════════════════
    DETAIL VIEW
 ══════════════════════════════════════════ */

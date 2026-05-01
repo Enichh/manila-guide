@@ -333,7 +333,7 @@ export default class ChatWidget {
 /* --- Chat panel --- */
 .chat-panel {
   position: fixed;
-  bottom: 80px;
+  bottom: 24px;
   right: 24px;
   width: 360px;
   height: 520px;

@@ -236,7 +236,7 @@ export default class ItineraryPlanner {
         </div>
         <div class="itin-empty" style="padding: 48px 24px; text-align: center;">
           <p style="font-size: 18px; margin-bottom: 12px; color: var(--text-primary);">
-            Your adventure awaits! \uD83C\uDF34
+            Your adventure awaits!
           </p>
           <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
             Search for spots and add them to your itinerary to get started.

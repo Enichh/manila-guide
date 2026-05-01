@@ -54,7 +54,7 @@ export default class ChatWidget {
           "You are Manila Guide AI, a friendly and knowledgeable tour guide specializing in Manila, Philippines. " +
           "You help tourists and locals discover historical landmarks, parks, local food spots, and cultural attractions. " +
           "You provide accurate information about entrance fees, operating hours, schedules, transportation tips, and nearby points of interest. " +
-          "Keep responses concise, warm, and helpful. Use emoji sparingly for a friendly tone. " +
+          "Keep responses concise, warm, and helpful. " +
           "When recommending places, mention practical details like fees, best times to visit, and how to get there. " +
           "If you do not know something, say so honestly rather than making up information.",
       },
@@ -167,7 +167,9 @@ export default class ChatWidget {
 <div class="chat-widget" id="chatWidget">
   <!-- Floating toggle button -->
   <button class="chat-toggle-btn" id="chatToggle" aria-label="Open chat">
-    <span class="chat-toggle-icon">💬</span>
+    <svg class="chat-toggle-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
   </button>
 
   <!-- Chat panel (hidden by default) -->
@@ -175,7 +177,7 @@ export default class ChatWidget {
     <!-- Header -->
     <div class="chat-header">
       <div class="chat-header-info">
-        <div class="chat-avatar">🤖</div>
+        <div class="chat-avatar chat-avatar-ai">AI</div>
         <div>
           <div class="chat-title">Manila Guide AI</div>
           <div class="chat-subtitle">Ask me anything about Manila!</div>
@@ -188,15 +190,15 @@ export default class ChatWidget {
     <div class="chat-messages" id="chatMessages">
       <!-- Welcome message from assistant (not stored in history) -->
       <div class="chat-msg assistant">
-        <div class="chat-msg-avatar">🤖</div>
+        <div class="chat-msg-avatar chat-avatar-ai">AI</div>
         <div class="chat-msg-bubble">
           <p>Hello! I'm your Manila Guide assistant. Ask me about:</p>
           <ul>
-            <li>🏛️ Historical landmarks</li>
-            <li>🌳 Parks and outdoor spots</li>
-            <li>🍽️ Local food recommendations</li>
-            <li>💰 Entrance fees and schedules</li>
-            <li>🚇 How to get around</li>
+            <li>Historical landmarks</li>
+            <li>Parks and outdoor spots</li>
+            <li>Local food recommendations</li>
+            <li>Entrance fees and schedules</li>
+            <li>How to get around</li>
           </ul>
           <p>How can I help you today?</p>
         </div>
@@ -290,8 +292,16 @@ export default class ChatWidget {
 }
 
 .chat-toggle-icon {
-  font-size: 24px;
-  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.chat-avatar-ai {
+  background: var(--gold);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 12px;
 }
 
 /* --- Pulse animation on toggle button --- */
@@ -877,7 +887,7 @@ export default class ChatWidget {
     const msgEl = document.createElement("div");
     msgEl.className = "chat-msg assistant";
     msgEl.innerHTML = `
-      <div class="chat-msg-avatar">🤖</div>
+      <div class="chat-msg-avatar chat-avatar-ai">AI</div>
       <div class="chat-msg-bubble">
         <p>${escaped}</p>
       </div>
@@ -897,7 +907,7 @@ export default class ChatWidget {
     const el = document.createElement("div");
     el.className = "chat-msg assistant typing-indicator";
     el.innerHTML = `
-      <div class="chat-msg-avatar">🤖</div>
+      <div class="chat-msg-avatar chat-avatar-ai">AI</div>
       <div class="chat-msg-bubble typing">
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
@@ -931,7 +941,7 @@ export default class ChatWidget {
     msgEl.className = "chat-msg error";
     msgEl.innerHTML = `
       <div class="chat-msg-bubble">
-        <p>⚠️ ${escaped}</p>
+        <p>${escaped}</p>
       </div>
     `;
     messagesContainer.appendChild(msgEl);

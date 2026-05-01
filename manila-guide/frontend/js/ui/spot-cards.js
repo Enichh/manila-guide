@@ -53,11 +53,11 @@ export default class SpotCards {
     const grid = this._getGrid();
     if (!grid) return;
 
-    const { spots, error } = await this._spotApi.getSpots({ status: 'active' });
+    const { spots, error } = await this._spotApi.getSpots({ status: "active" });
 
     if (error) {
       grid.innerHTML = this._renderFallback(
-        'Unable to load destinations. Please try again later.',
+        "Unable to load destinations. Please try again later.",
       );
       return;
     }
@@ -79,24 +79,24 @@ export default class SpotCards {
     if (!grid) return;
 
     // Clear existing content
-    grid.innerHTML = '';
+    grid.innerHTML = "";
 
     if (!spots || spots.length === 0) {
       grid.innerHTML = this._renderFallback(
-        'No spots found. Try adjusting your filters.',
+        "No spots found. Try adjusting your filters.",
       );
       return;
     }
 
     // Build card HTML for each spot
-    grid.innerHTML = spots.map((spot) => this._createCardHTML(spot)).join('');
+    grid.innerHTML = spots.map((spot) => this._createCardHTML(spot)).join("");
 
     // Re-attach interactivity
     this._attachFavouriteListeners();
     this._setupScrollAnimations();
 
     // Notify other components that spots have been rendered
-    this._eventBus.emit('spots:rendered', { count: spots.length });
+    this._eventBus.emit("spots:rendered", { count: spots.length });
   }
 
   /**
@@ -106,7 +106,7 @@ export default class SpotCards {
    *        `'All'` / `null` to show all spots.
    */
   filterByCategory(category) {
-    if (!category || category === 'All') {
+    if (!category || category === "All") {
       this._activeCategory = null;
       this.render(this._allSpots);
       return;
@@ -116,8 +116,7 @@ export default class SpotCards {
 
     const filtered = this._allSpots.filter(
       (spot) =>
-        spot.category &&
-        spot.category.toLowerCase() === this._activeCategory,
+        spot.category && spot.category.toLowerCase() === this._activeCategory,
     );
 
     this.render(filtered);
@@ -131,7 +130,7 @@ export default class SpotCards {
    * @param {string} query — Search string.  Empty string renders all spots.
    */
   search(query) {
-    if (!query || query.trim() === '') {
+    if (!query || query.trim() === "") {
       this.render(this._allSpots);
       return;
     }
@@ -157,17 +156,15 @@ export default class SpotCards {
    * @param {string|number} spotId
    */
   showDetail(spotId) {
-    const spot = this._allSpots.find(
-      (s) => String(s.id) === String(spotId),
-    );
+    const spot = this._allSpots.find((s) => String(s.id) === String(spotId));
 
     if (!spot) return;
 
-    this._eventBus.emit('spot:detailOpen', { spot });
+    this._eventBus.emit("spot:detailOpen", { spot });
 
-    const detailSection = document.getElementById('detail');
+    const detailSection = document.getElementById("detail");
     if (detailSection) {
-      detailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      detailSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
@@ -178,10 +175,10 @@ export default class SpotCards {
     const grid = this._getGrid();
     if (!grid) return;
 
-    const buttons = grid.querySelectorAll('.fav-btn');
+    const buttons = grid.querySelectorAll(".fav-btn");
     if (this._favClickHandler) {
       buttons.forEach((btn) =>
-        btn.removeEventListener('click', this._favClickHandler),
+        btn.removeEventListener("click", this._favClickHandler),
       );
       this._favClickHandler = null;
     }
@@ -199,20 +196,19 @@ export default class SpotCards {
    * @private
    */
   _createCardHTML(spot) {
-    const rating = spot.rating_avg ? spot.rating_avg.toFixed(1) : '\u2014';
+    const rating = spot.rating_avg ? spot.rating_avg.toFixed(1) : "\u2014";
     const reviewCount = spot.review_count || 0;
     const stars = this._renderStars(Math.round(spot.rating_avg || 0));
     const isFree =
-      spot.entrance_fee &&
-      spot.entrance_fee.toLowerCase().includes('free');
+      spot.entrance_fee && spot.entrance_fee.toLowerCase().includes("free");
 
     return `
     <article class="spot-card" style="--card-hue: ${this._hueForCategory(spot.category)}" data-spot-id="${spot.id}">
       <div class="spot-card-img" style="background: ${this._gradientForCategory(spot.category)}">
         <div class="spot-img-overlay"></div>
         <div class="spot-card-badges">
-          <span class="badge badge-cat">${this._escapeHtml(spot.category)}</span>
-          ${isFree ? '<span class="badge badge-free">Free entry</span>' : ''}
+          <span class="badge badge-cat">${this._escapeHtml(this._formatCategory(spot.category))}</span>
+          ${isFree ? '<span class="badge badge-free">Free entry</span>' : ""}
         </div>
         <button class="fav-btn" data-spot-id="${spot.id}" aria-label="Save to favorites">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -222,15 +218,15 @@ export default class SpotCards {
         <div class="spot-card-img-label">${this._escapeHtml(spot.name)}</div>
       </div>
       <div class="spot-card-body">
-        <p class="spot-card-desc">${this._escapeHtml(this._truncate(spot.description || '', 150))}</p>
+        <p class="spot-card-desc">${this._escapeHtml(this._truncate(spot.description || "", 150))}</p>
         <div class="spot-card-meta">
           <div class="meta-row">
             <span class="meta-icon">\u25F7</span>
-            <span class="meta-text">${this._escapeHtml(spot.operating_hours || 'Hours vary')}</span>
+            <span class="meta-text">${this._escapeHtml(spot.operating_hours || "Hours vary")}</span>
           </div>
           <div class="meta-row">
             <span class="meta-icon">\u2299</span>
-            <span class="meta-text">${this._escapeHtml(spot.address || 'Manila')}</span>
+            <span class="meta-text">${this._escapeHtml(spot.address || "Manila")}</span>
           </div>
         </div>
         <div class="spot-card-footer">
@@ -239,7 +235,7 @@ export default class SpotCards {
             <span class="rating-num">${rating}</span>
             <span class="rating-count">(${reviewCount})</span>
           </div>
-          <div class="spot-fee ${isFree ? 'free' : ''}">${this._escapeHtml(spot.entrance_fee || 'Fee varies')}</div>
+          <div class="spot-fee ${isFree ? "free" : ""}">${this._escapeHtml(this._simplifyFee(spot.entrance_fee))}</div>
         </div>
         <a href="#detail" class="card-cta" data-spot-id="${spot.id}">View details \u2192</a>
       </div>
@@ -252,7 +248,57 @@ export default class SpotCards {
   // -----------------------------------------------------------------------
 
   /**
+   * Format a snake_case category string to human-readable Title Case.
+   * Converts e.g. "shopping_mall" → "Shopping Mall",
+   * "religious_site" → "Religious Site".
+   *
+   * @param {string} category
+   * @returns {string}
+   * @private
+   */
+  _formatCategory(category) {
+    if (!category) return "";
+    return category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  /**
+   * Simplify an entrance fee string for compact card display.
+   * Extracts the main price, leaving full detail for the detail view.
+   *
+   * @param {string} feeStr
+   * @returns {string}
+   * @private
+   */
+  _simplifyFee(feeStr) {
+    if (!feeStr) return "Fee varies";
+    const lower = feeStr.toLowerCase();
+    if (lower.includes("free")) return "Free";
+
+    // Try to extract the first price mentioned
+    const cleaned = feeStr
+      .replace(/PHP\s*/gi, "₱")
+      .replace(/Php\s*/gi, "₱")
+      .replace(/php\s*/gi, "₱");
+
+    // If it has a range like "₱75 – ₱150", return that
+    const rangeMatch = cleaned.match(/₱[\d,.]+\s*(–|—|-|to)\s*₱[\d,.]+/i);
+    if (rangeMatch) return rangeMatch[0];
+
+    // If it has a single price "₱75" or "₱75 (regular)", extract just the price
+    const singleMatch = cleaned.match(/₱[\d,.]+/);
+    if (singleMatch) return singleMatch[0];
+
+    // If it's a short string (under 30 chars), show as-is
+    if (cleaned.length <= 30) return cleaned;
+
+    // Otherwise truncate
+    return cleaned.substring(0, 28) + "\u2026";
+  }
+
+  /**
    * Return a CSS hue number for the given category string.
+   * Uses substring matching to handle DB values like "Historical Sites",
+   * "Religious Sites", "Tourist Attraction", etc.
    *
    * @param {string} category
    * @returns {number}
@@ -260,27 +306,24 @@ export default class SpotCards {
    */
   _hueForCategory(category) {
     if (!category) return 210;
-
     const c = category.toLowerCase();
-    const map = {
-      historical: 220,
-      religious: 40,
-      park: 160,
-      museum: 280,
-      restaurant: 30,
-      shopping: 200,
-      market: 350,
-      entertainment: 300,
-    };
-
-    return map[c] ?? 210;
+    if (c.includes("historical")) return 220;
+    if (c.includes("religious") || c.includes("church")) return 40;
+    if (c.includes("park") || c.includes("garden")) return 160;
+    if (c.includes("museum")) return 280;
+    if (c.includes("restaurant") || c.includes("food") || c.includes("dining"))
+      return 30;
+    if (c.includes("shopping") || c.includes("mall") || c.includes("market"))
+      return 200;
+    if (c.includes("entertainment") || c.includes("nightlife")) return 300;
+    if (c.includes("attraction") || c.includes("tourist")) return 180;
+    return 210;
   }
 
   /**
    * Return a CSS `linear-gradient` string for the card image placeholder.
-   *
-   * Matches the feel of the hardcoded `.fort-bg`, `.rizal-bg`, etc. classes
-   * that already exist in `user.css`.
+   * Uses substring matching to handle DB values like "Historical Sites",
+   * "Religious Sites", etc.
    *
    * @param {string} category
    * @returns {string} CSS gradient value.
@@ -288,22 +331,27 @@ export default class SpotCards {
    */
   _gradientForCategory(category) {
     if (!category) {
-      return 'linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)';
+      return "linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)";
     }
 
     const c = category.toLowerCase();
-    const map = {
-      historical: 'linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)',
-      religious: 'linear-gradient(160deg, #4d2a0a 0%, #2b1507 100%)',
-      park: 'linear-gradient(160deg, #1a4d2e 0%, #0d2b1a 100%)',
-      museum: 'linear-gradient(160deg, #3d1a4d 0%, #1f0d2b 100%)',
-      restaurant: 'linear-gradient(160deg, #4d2a0a 0%, #2b1507 100%)',
-      shopping: 'linear-gradient(160deg, #0a2d4d 0%, #061929 100%)',
-      market: 'linear-gradient(160deg, #4d0a2a 0%, #2b0714 100%)',
-      entertainment: 'linear-gradient(160deg, #2a0a4d 0%, #16072b 100%)',
-    };
-
-    return map[c] ?? 'linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)';
+    if (c.includes("historical"))
+      return "linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)";
+    if (c.includes("religious") || c.includes("church"))
+      return "linear-gradient(160deg, #4d2a0a 0%, #2b1507 100%)";
+    if (c.includes("park") || c.includes("garden"))
+      return "linear-gradient(160deg, #1a4d2e 0%, #0d2b1a 100%)";
+    if (c.includes("museum"))
+      return "linear-gradient(160deg, #3d1a4d 0%, #1f0d2b 100%)";
+    if (c.includes("restaurant") || c.includes("food") || c.includes("dining"))
+      return "linear-gradient(160deg, #4d2a0a 0%, #2b1507 100%)";
+    if (c.includes("shopping") || c.includes("mall") || c.includes("market"))
+      return "linear-gradient(160deg, #0a2d4d 0%, #061929 100%)";
+    if (c.includes("entertainment") || c.includes("nightlife"))
+      return "linear-gradient(160deg, #2a0a4d 0%, #16072b 100%)";
+    if (c.includes("attraction") || c.includes("tourist"))
+      return "linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)";
+    return "linear-gradient(160deg, #1e2d4d 0%, #0f1929 100%)";
   }
 
   /**
@@ -316,7 +364,7 @@ export default class SpotCards {
   _renderStars(count) {
     const filled = Math.max(0, Math.min(5, count));
     const empty = 5 - filled;
-    return '\u2605'.repeat(filled) + '\u2606'.repeat(empty);
+    return "\u2605".repeat(filled) + "\u2606".repeat(empty);
   }
 
   /**
@@ -330,8 +378,8 @@ export default class SpotCards {
    * @private
    */
   _escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
+    if (!str) return "";
+    const div = document.createElement("div");
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
@@ -345,8 +393,8 @@ export default class SpotCards {
    * @private
    */
   _truncate(str, max) {
-    if (!str || str.length <= max) return str || '';
-    return str.slice(0, max).trimEnd() + '\u2026';
+    if (!str || str.length <= max) return str || "";
+    return str.slice(0, max).trimEnd() + "\u2026";
   }
 
   // -----------------------------------------------------------------------
@@ -360,7 +408,7 @@ export default class SpotCards {
    * @private
    */
   _getGrid() {
-    return document.querySelector('.spots-grid');
+    return document.querySelector(".spots-grid");
   }
 
   /**
@@ -397,20 +445,20 @@ export default class SpotCards {
 
     // Remove old handler if it exists (defensive)
     if (this._favClickHandler) {
-      const oldButtons = grid.querySelectorAll('.fav-btn');
+      const oldButtons = grid.querySelectorAll(".fav-btn");
       oldButtons.forEach((btn) =>
-        btn.removeEventListener('click', this._favClickHandler),
+        btn.removeEventListener("click", this._favClickHandler),
       );
     }
 
     this._favClickHandler = (e) => {
       const btn = e.currentTarget;
-      btn.classList.toggle('saved');
+      btn.classList.toggle("saved");
     };
 
-    const buttons = grid.querySelectorAll('.fav-btn');
+    const buttons = grid.querySelectorAll(".fav-btn");
     buttons.forEach((btn) =>
-      btn.addEventListener('click', this._favClickHandler),
+      btn.addEventListener("click", this._favClickHandler),
     );
   }
 
@@ -425,14 +473,14 @@ export default class SpotCards {
     const grid = this._getGrid();
     if (!grid) return;
 
-    const cards = grid.querySelectorAll('.spot-card');
+    const cards = grid.querySelectorAll(".spot-card");
     if (cards.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
+            entry.target.classList.add("visible");
           }
         });
       },

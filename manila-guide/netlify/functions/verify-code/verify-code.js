@@ -59,17 +59,17 @@ exports.handler = async (event) => {
     return wrapResponse(400, "Verification code expired.");
   }
 
-  // Check attempts (max 5)
-  if (record.attempts >= 5) {
-    await codeStore.deleteCode(record.id);
-    return wrapResponse(400, "Too many attempts. Please request a new code.");
-  }
-
-  // Increment attempts
-  await codeStore.incrementAttempts(record.id, record.attempts);
-
-  // Validate code
+  // Validate code first
   if (record.code !== code) {
+    // Increment attempts only on failed validation
+    await codeStore.incrementAttempts(record.id, record.attempts);
+
+    // Check if this failure reaches the limit
+    if (record.attempts + 1 >= 5) {
+      await codeStore.deleteCode(record.id);
+      return wrapResponse(400, "Too many attempts. Please request a new code.");
+    }
+
     return wrapResponse(400, "Invalid verification code.");
   }
 
